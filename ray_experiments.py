@@ -17,7 +17,7 @@ from ray_extensions import ExtendedTrainable
 
 np.warnings.filterwarnings('ignore')
 logger = logging.getLogger(__name__)
-
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 class LLFSExperiment(ExtendedTrainable):
 
@@ -178,9 +178,9 @@ class LLFSExperiment(ExtendedTrainable):
 # noinspection PyProtectedMember
 def count_required_gpus(config):
     if config['agent_count'] > 1:
-        return math.ceil(config['agent_count'] * ray_workers.AgentWorker._num_gpus + ray_workers.ObjectiveServer._num_gpus)
+        return math.ceil(config['agent_count'] * ray_workers.AgentWorker.__ray_metadata__.num_gpus + ray_workers.ObjectiveServer.__ray_metadata__.num_gpus)
     else:
-        return ray_workers.AgentWorker._num_gpus
+        return ray_workers.AgentWorker.__ray_metadata__.num_gpus
 
 
 def init_ray(redis_address=None):
@@ -191,7 +191,7 @@ def init_ray(redis_address=None):
         ray.init(object_store_memory=mem, redis_max_memory=mem, temp_dir='/tmp/metagenrl/ray')
 
 
-def run(config, run_name='metagenrl', timesteps=300 * 1000, samples=1):
+def run(config, run_name='metagenrl', timesteps=700 * 1000, samples=1):
     tune.register_trainable(run_name, LLFSExperiment)
     trial_gpus = count_required_gpus(config)
     print(f'Requiring {trial_gpus} extra gpus.')
@@ -226,14 +226,17 @@ def test(args):
     Performs meta-test training
     """
     assert isinstance(args.objective, str)
-    config = configs.test(args.objective)
+    config = configs.test(args.objective, chkp=args.chkp)
     config.update({
+        'name': args.name,
         'env_name': tune.grid_search([
             'Hopper-v2',
+            'HalfCheetah-v2',
+            'LunarLanderContinuous-v2',
         ]),
     })
 
-    run(config, run_name='test-public-CheetahLunar')
+    run(config, run_name=f'test-public-{args.name}-chkp{args.chkp}', samples=1)
 
 
 if __name__ == '__main__':
@@ -244,6 +247,8 @@ if __name__ == '__main__':
     parser.add_argument('command', choices=FUNCTION_MAP.keys())
     parser.add_argument('--redis', dest='redis_address', action='store', type=str)
     parser.add_argument('--objective', action='store', type=str)
+    parser.add_argument('--name', action='store', type=str)
+    parser.add_argument('--chkp', action='store', type=int, default=-1)
     parsed_args = parser.parse_args()
     init_ray(parsed_args.redis_address)
     func = FUNCTION_MAP[parsed_args.command]

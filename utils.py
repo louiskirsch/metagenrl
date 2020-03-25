@@ -89,7 +89,7 @@ def get_store_socket():
     :return: socket file path
     """
     try:
-        return ray.worker.global_worker.plasma_client.store_socket_name
+        return ray.worker.global_worker.node.plasma_store_socket_name
     except AttributeError:
         return ''
 

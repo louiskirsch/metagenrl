@@ -7,7 +7,7 @@ This is the official research code for the paper Kirsch et al. 2019:
 
 Install the following dependencies (in a virtualenv preferably)
 ```bash
-pip3 install ray gym[all] tensorflow-gpu scipy numpy
+pip3 install ray[tune]==0.7.7 gym[all] mujoco_py>=2 tensorflow-gpu==1.13.2 scipy numpy
 ```
 
 This code base uses [ray](https://github.com/ray-project/ray), if you would like to use multiple machines,
