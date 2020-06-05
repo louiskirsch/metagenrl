@@ -47,7 +47,7 @@ Download a pre-trained objective function,
 
 ```bash
 cd ~/ray_results/metagenrl
-curl URL_COMING_SOON|tar xvz
+curl https://github.com/timediv/metagenrl/releases/download/pretrained-v1/CheetahLunar.tgz|tar xvz
 ```
 
 and proceed with meta testing as above.
